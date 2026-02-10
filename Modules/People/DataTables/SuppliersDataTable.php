@@ -13,7 +13,8 @@ use Yajra\DataTables\Services\DataTable;
 class SuppliersDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('action', function ($data) {
@@ -21,11 +22,13 @@ class SuppliersDataTable extends DataTable
             });
     }
 
-    public function query(Supplier $model) {
+    public function query(Supplier $model)
+    {
         return $model->newQuery();
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('suppliers-table')
             ->columns($this->getColumns())
@@ -46,28 +49,36 @@ class SuppliersDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('supplier_name')
+                ->title('Nama')
                 ->className('text-center align-middle'),
 
             Column::make('supplier_email')
+                ->title('Email')
                 ->className('text-center align-middle'),
 
             Column::make('supplier_phone')
+                ->title('No. HP')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'Suppliers_' . date('YmdHis');
     }
 }

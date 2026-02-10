@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class ExpenseCategoriesDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('action', function ($data) {
@@ -20,11 +21,13 @@ class ExpenseCategoriesDataTable extends DataTable
             });
     }
 
-    public function query(ExpenseCategory $model) {
+    public function query(ExpenseCategory $model)
+    {
         return $model->newQuery()->withCount('expenses');
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('expensecategories-table')
             ->columns($this->getColumns())
@@ -42,31 +45,54 @@ class ExpenseCategoriesDataTable extends DataTable
                     ->text('<i class="bi bi-x-circle"></i> Reset'),
                 Button::make('reload')
                     ->text('<i class="bi bi-arrow-repeat"></i> Reload')
-            );
+            )
+            ->language([
+                'sProcessing'   => 'Sedang memproses...',
+                'sLengthMenu'   => 'Tampilkan _MENU_ data',
+                'sZeroRecords'  => 'Tidak ada data',
+                'sInfo'         => 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+                'sInfoEmpty'    => 'Menampilkan 0 sampai 0 dari 0 data',
+                'sInfoFiltered' => '(disaring dari _MAX_ total data)',
+                'sSearch'       => 'Cari:',
+                'oPaginate'     => [
+                    'sFirst'    => 'Pertama',
+                    'sLast'     => 'Terakhir',
+                    'sNext'     => 'Selanjutnya',
+                    'sPrevious' => 'Sebelumnya',
+                ],
+            ]);
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('category_name')
+                ->title('Nama Kategori')
                 ->addClass('text-center'),
 
             Column::make('category_description')
+                ->title('Deskripsi')
                 ->addClass('text-center'),
 
             Column::make('expenses_count')
+                ->title('Jumlah Pengeluaran')
                 ->addClass('text-center'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->addClass('text-center'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'ExpenseCategories_' . date('YmdHis');
     }
 }

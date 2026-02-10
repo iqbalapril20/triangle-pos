@@ -12,6 +12,7 @@ use Modules\Sale\Entities\Sale;
 use Modules\Sale\Entities\SalePayment;
 use Modules\SalesReturn\Entities\SaleReturn;
 use Modules\SalesReturn\Entities\SaleReturnPayment;
+use App\Services\ProfitLossService;
 
 class ProfitLossReport extends Component
 {
@@ -33,7 +34,8 @@ class ProfitLossReport extends Component
         'end_date'   => 'required|date|after:start_date'
     ];
 
-    public function mount() {
+    public function mount()
+    {
         $this->start_date = '';
         $this->end_date = '';
         $this->total_sales = 0;
@@ -49,17 +51,24 @@ class ProfitLossReport extends Component
         $this->payments_net_amount = 0;
     }
 
-    public function render() {
+    public function render()
+    {
         $this->setValues();
+        // $data = ProfitLossService::summary(
+        //     $this->start_date,
+        //     $this->end_date
+        // );
 
         return view('livewire.reports.profit-loss-report');
     }
 
-    public function generateReport() {
+    public function generateReport()
+    {
         $this->validate();
     }
 
-    public function setValues() {
+    public function setValues()
+    {
         $this->total_sales = Sale::completed()
             ->when($this->start_date, function ($query) {
                 return $query->whereDate('date', '>=', $this->start_date);
@@ -133,8 +142,8 @@ class ProfitLossReport extends Component
             ->sum('total_amount') / 100;
 
         $this->expenses_amount = Expense::when($this->start_date, function ($query) {
-                return $query->whereDate('date', '>=', $this->start_date);
-            })
+            return $query->whereDate('date', '>=', $this->start_date);
+        })
             ->when($this->end_date, function ($query) {
                 return $query->whereDate('date', '<=', $this->end_date);
             })
@@ -142,14 +151,20 @@ class ProfitLossReport extends Component
 
         $this->profit_amount = $this->calculateProfit();
 
-        $this->payments_received_amount = $this->calculatePaymentsReceived();
+        // $this->payments_received_amount = $this->calculatePaymentsReceived();
+        // UANG MASUK = TOTAL PENJUALAN (TOTAL BELANJA)
+        $this->payments_received_amount = $this->sales_amount;
+
 
         $this->payments_sent_amount = $this->calculatePaymentsSent();
+        // + $this->calculateChangeAmount();
+
 
         $this->payments_net_amount = $this->payments_received_amount - $this->payments_sent_amount;
     }
 
-    public function calculateProfit() {
+    public function calculateProfit()
+    {
         $product_costs = 0;
         $revenue = $this->sales_amount - $this->sale_returns_amount;
         $sales = Sale::completed()
@@ -172,18 +187,19 @@ class ProfitLossReport extends Component
         return $profit;
     }
 
-    public function calculatePaymentsReceived() {
+    public function calculatePaymentsReceived()
+    {
         $sale_payments = SalePayment::when($this->start_date, function ($query) {
-                return $query->whereDate('date', '>=', $this->start_date);
-            })
+            return $query->whereDate('date', '>=', $this->start_date);
+        })
             ->when($this->end_date, function ($query) {
                 return $query->whereDate('date', '<=', $this->end_date);
             })
             ->sum('amount') / 100;
 
         $purchase_return_payments = PurchaseReturnPayment::when($this->start_date, function ($query) {
-                return $query->whereDate('date', '>=', $this->start_date);
-            })
+            return $query->whereDate('date', '>=', $this->start_date);
+        })
             ->when($this->end_date, function ($query) {
                 return $query->whereDate('date', '<=', $this->end_date);
             })
@@ -192,18 +208,19 @@ class ProfitLossReport extends Component
         return $sale_payments + $purchase_return_payments;
     }
 
-    public function calculatePaymentsSent() {
+    public function calculatePaymentsSent()
+    {
         $purchase_payments = PurchasePayment::when($this->start_date, function ($query) {
-                return $query->whereDate('date', '>=', $this->start_date);
-            })
+            return $query->whereDate('date', '>=', $this->start_date);
+        })
             ->when($this->end_date, function ($query) {
                 return $query->whereDate('date', '<=', $this->end_date);
             })
             ->sum('amount') / 100;
 
         $sale_return_payments = SaleReturnPayment::when($this->start_date, function ($query) {
-                return $query->whereDate('date', '>=', $this->start_date);
-            })
+            return $query->whereDate('date', '>=', $this->start_date);
+        })
             ->when($this->end_date, function ($query) {
                 return $query->whereDate('date', '<=', $this->end_date);
             })
@@ -211,4 +228,28 @@ class ProfitLossReport extends Component
 
         return $purchase_payments + $sale_return_payments + $this->expenses_amount;
     }
+    // public function calculateChangeAmount()
+    // {
+    //     // Kembalian = paid_amount - total_amount (kalau paid > total)
+    //     // Semua di DB masih *100, jadi kita /100 biar setara dengan komponen lain.
+    //     return Sale::completed()
+    //         ->when($this->start_date, function ($query) {
+    //             return $query->whereDate('date', '>=', $this->start_date);
+    //         })
+    //         ->when($this->end_date, function ($query) {
+    //             return $query->whereDate('date', '<=', $this->end_date);
+    //         })
+    //         ->whereColumn('paid_amount', '>', 'total_amount')
+    //         ->selectRaw('COALESCE(SUM(paid_amount - total_amount),0) as total_change')
+    //         ->value('total_change') / 100;
+    // }
+    // public function render()
+    // {
+    //     $data = ProfitLossService::summary(
+    //         $this->startDate,
+    //         $this->endDate
+    //     );
+
+    //     return view('livewire.reports.profit-loss-report', $data);
+    // }
 }

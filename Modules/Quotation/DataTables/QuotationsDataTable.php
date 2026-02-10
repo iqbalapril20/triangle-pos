@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class QuotationsDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('total_amount', function ($data) {
@@ -26,11 +27,13 @@ class QuotationsDataTable extends DataTable
             });
     }
 
-    public function query(Quotation $model) {
+    public function query(Quotation $model)
+    {
         return $model->newQuery();
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('sales-table')
             ->columns($this->getColumns())
@@ -51,35 +54,43 @@ class QuotationsDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('date')
+                ->title('Tanggal')
                 ->className('text-center align-middle'),
 
             Column::make('reference')
+                ->title('Referensi')
                 ->className('text-center align-middle'),
 
             Column::make('customer_name')
-                ->title('Customer')
+                ->title('Nama Customer')
                 ->className('text-center align-middle'),
 
             Column::computed('status')
                 ->className('text-center align-middle'),
 
             Column::computed('total_amount')
+                ->title('Total')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'Quotations_' . date('YmdHis');
     }
 }

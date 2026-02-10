@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class AdjustmentsDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('action', function ($data) {
@@ -20,11 +21,13 @@ class AdjustmentsDataTable extends DataTable
             });
     }
 
-    public function query(Adjustment $model) {
+    public function query(Adjustment $model)
+    {
         return $model->newQuery()->withCount('adjustedProducts');
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('adjustments-table')
             ->columns($this->getColumns())
@@ -45,29 +48,36 @@ class AdjustmentsDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('date')
+                ->title('Tanggal')
                 ->className('text-center align-middle'),
 
             Column::make('reference')
+                ->title('Referensi')
                 ->className('text-center align-middle'),
 
             Column::make('adjusted_products_count')
-                ->title('Products')
+                ->title('Produk')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'Adjustments_' . date('YmdHis');
     }
 }

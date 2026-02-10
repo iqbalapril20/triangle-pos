@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class CurrencyDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('action', function ($data) {
@@ -20,11 +21,13 @@ class CurrencyDataTable extends DataTable
             });
     }
 
-    public function query(Currency $model) {
+    public function query(Currency $model)
+    {
         return $model->newQuery();
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('currency-table')
             ->columns($this->getColumns())
@@ -45,7 +48,8 @@ class CurrencyDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('currency_name')
                 ->className('text-center align-middle'),
@@ -68,11 +72,14 @@ class CurrencyDataTable extends DataTable
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'Currency_' . date('YmdHis');
     }
 }

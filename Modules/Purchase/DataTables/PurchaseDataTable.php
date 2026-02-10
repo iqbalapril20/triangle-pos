@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class PurchaseDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('total_amount', function ($data) {
@@ -35,11 +36,13 @@ class PurchaseDataTable extends DataTable
             });
     }
 
-    public function query(Purchase $model) {
+    public function query(Purchase $model)
+    {
         return $model->newQuery();
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('purchases-table')
             ->columns($this->getColumns())
@@ -60,41 +63,51 @@ class PurchaseDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('reference')
+                ->title('No. Transaksi')
                 ->className('text-center align-middle'),
 
             Column::make('supplier_name')
-                ->title('Supplier')
+                ->title('Nama Supplier')
                 ->className('text-center align-middle'),
 
             Column::computed('status')
+                ->title('Status')
                 ->className('text-center align-middle'),
 
             Column::computed('total_amount')
+                ->title('Total')
                 ->className('text-center align-middle'),
 
             Column::computed('paid_amount')
+                ->title('Uang Dibayar')
                 ->className('text-center align-middle'),
 
             Column::computed('due_amount')
+                ->title('Uang Kembali')
                 ->className('text-center align-middle'),
 
             Column::computed('payment_status')
+                ->title('Status Pembayaran')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
-                ->visible(false)
+                ->visible(false),
         ];
     }
 
-    protected function filename(): string {
+
+    protected function filename(): string
+    {
         return 'Purchase_' . date('YmdHis');
     }
 }

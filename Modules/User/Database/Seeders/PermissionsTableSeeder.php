@@ -119,16 +119,38 @@ class PermissionsTableSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create([
-                'name' => $permission
-            ]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
-        $role = Role::create([
-            'name' => 'Admin'
-        ]);
+        $role = Role::firstOrCreate(['name' => 'Admin']);
 
-        $role->givePermissionTo($permissions);
+        $role->syncPermissions($permissions);
         $role->revokePermissionTo('access_user_management');
+
+
+        $kasirPermissions = [
+            // Biar kasir bisa update profil sendiri (opsional)
+            'edit_own_profile',
+
+            // SALES + POS
+            'access_sales',
+            'create_sales',
+            'show_sales',
+            'edit_sales',         // opsional: kalau kasir boleh edit transaksi
+            // 'delete_sales',     // biasanya JANGAN
+
+            'create_pos_sales',
+
+            // Pembayaran penjualan (kalau kasir input pembayaran)
+            'access_sale_payments',
+
+            // Customer (sering dibutuhkan supaya bisa pilih customer di POS)
+            'access_customers',
+            'show_customers',
+            // 'create_customers', // opsional kalau kasir boleh bikin customer baru
+        ];
+
+        $kasirRole = Role::firstOrCreate(['name' => 'Kasir']);
+        $kasirRole->syncPermissions($kasirPermissions);
     }
 }

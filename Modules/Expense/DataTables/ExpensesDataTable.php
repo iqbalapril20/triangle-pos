@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class ExpensesDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('amount', function ($data) {
@@ -23,11 +24,13 @@ class ExpensesDataTable extends DataTable
             });
     }
 
-    public function query(Expense $model) {
+    public function query(Expense $model)
+    {
         return $model->newQuery()->with('category');
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('expenses-table')
             ->columns($this->getColumns())
@@ -45,38 +48,63 @@ class ExpensesDataTable extends DataTable
                     ->text('<i class="bi bi-x-circle"></i> Reset'),
                 Button::make('reload')
                     ->text('<i class="bi bi-arrow-repeat"></i> Reload')
-            );
+            )
+            ->language([
+                'sProcessing' => 'Sedang memproses...',
+                'sLengthMenu' => 'Tampilkan _MENU_ data',
+                'sZeroRecords' => 'Tidak ada data',
+                'sInfo' => 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+                'sInfoEmpty' => 'Menampilkan 0 sampai 0 dari 0 data',
+                'sInfoFiltered' => '(disaring dari _MAX_ total data)',
+                'sSearch' => 'Cari:',
+                'oPaginate' => [
+                    'sFirst' => 'Pertama',
+                    'sLast' => 'Terakhir',
+                    'sNext' => 'Selanjutnya',
+                    'sPrevious' => 'Sebelumnya',
+                ],
+            ]);
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('date')
+                ->title('Tanggal')
                 ->className('text-center align-middle'),
 
             Column::make('reference')
+                ->title('Referensi')
                 ->className('text-center align-middle'),
 
             Column::make('category.category_name')
-                ->title('Category')
+                ->title('Kategori')
                 ->className('text-center align-middle'),
 
             Column::computed('amount')
+                ->title('Jumlah')
                 ->className('text-center align-middle'),
 
             Column::make('details')
+                ->title('Keterangan')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
-                ->visible(false)
+                ->exportable(false)
+                ->printable(false)
+                ->visible(false),
         ];
     }
 
-    protected function filename(): string {
+
+    protected function filename(): string
+    {
         return 'Expenses_' . date('YmdHis');
     }
 }

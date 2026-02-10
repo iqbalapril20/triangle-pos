@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class UsersDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('role', function ($data) {
@@ -40,7 +41,8 @@ class UsersDataTable extends DataTable
             ->rawColumns(['image', 'status']);
     }
 
-    public function query(User $model) {
+    public function query(User $model)
+    {
         return $model->newQuery()
             ->with(['roles' => function ($query) {
                 $query->select('name')->get();
@@ -48,7 +50,8 @@ class UsersDataTable extends DataTable
             ->where('id', '!=', auth()->id());
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('users-table')
             ->columns($this->getColumns())
@@ -69,34 +72,42 @@ class UsersDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::computed('image')
+                ->title('Gambar')
                 ->className('text-center align-middle'),
 
             Column::make('name')
+                ->title('Nama')
                 ->className('text-center align-middle'),
 
             Column::make('email')
                 ->className('text-center align-middle'),
 
             Column::computed('role')
+                ->title('Posisi')
                 ->className('text-center align-middle'),
 
             Column::computed('status')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'Users_' . date('YmdHis');
     }
 }

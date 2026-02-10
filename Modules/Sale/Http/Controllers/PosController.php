@@ -18,7 +18,8 @@ use Modules\Sale\Http\Requests\StorePosSaleRequest;
 class PosController extends Controller
 {
 
-    public function index() {
+    public function index()
+    {
         Cart::instance('sale')->destroy();
 
         $customers = Customer::all();
@@ -28,7 +29,8 @@ class PosController extends Controller
     }
 
 
-    public function store(StorePosSaleRequest $request) {
+    public function store(StorePosSaleRequest $request)
+    {
         DB::transaction(function () use ($request) {
             $due_amount = $request->total_amount - $request->paid_amount;
 
@@ -40,17 +42,28 @@ class PosController extends Controller
                 $payment_status = 'Paid';
             }
 
+            // ✅ customer opsional (kalau kosong -> "Umum")
+            $customerName = 'Umum';
+            $customerId = $request->customer_id ?: null;
+
+            if (!empty($customerId)) {
+                $customer = Customer::find($customerId);
+                $customerName = $customer?->customer_name ?? 'Umum';
+            }
+
             $sale = Sale::create([
                 'date' => now()->format('Y-m-d'),
                 'reference' => 'PSL',
-                'customer_id' => $request->customer_id,
-                'customer_name' => Customer::findOrFail($request->customer_id)->customer_name,
+                'customer_id' => $customerId,
+                'customer_name' => $customerName,
+
                 'tax_percentage' => $request->tax_percentage,
                 'discount_percentage' => $request->discount_percentage,
                 'shipping_amount' => $request->shipping_amount * 100,
                 'paid_amount' => $request->paid_amount * 100,
                 'total_amount' => $request->total_amount * 100,
                 'due_amount' => $due_amount * 100,
+
                 'status' => 'Completed',
                 'payment_status' => $payment_status,
                 'payment_method' => $request->payment_method,
@@ -85,7 +98,7 @@ class PosController extends Controller
             if ($sale->paid_amount > 0) {
                 SalePayment::create([
                     'date' => now()->format('Y-m-d'),
-                    'reference' => 'INV/'.$sale->reference,
+                    'reference' => 'INV/' . $sale->reference,
                     'amount' => $sale->paid_amount,
                     'sale_id' => $sale->id,
                     'payment_method' => $request->payment_method

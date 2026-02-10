@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class SalePaymentsDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('amount', function ($data) {
@@ -23,11 +24,13 @@ class SalePaymentsDataTable extends DataTable
             });
     }
 
-    public function query(SalePayment $model) {
+    public function query(SalePayment $model)
+    {
         return $model->newQuery()->bySale()->with('sale');
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('sale-payments-table')
             ->columns($this->getColumns())
@@ -48,31 +51,39 @@ class SalePaymentsDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('date')
+                ->title('Tanggal')
                 ->className('align-middle text-center'),
 
             Column::make('reference')
+                ->title('Referensi')
                 ->className('align-middle text-center'),
 
             Column::computed('amount')
                 ->className('align-middle text-center'),
 
             Column::make('payment_method')
+                ->title('Metode Pembayaran')
                 ->className('align-middle text-center'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('align-middle text-center'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false),
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'SalePayments_' . date('YmdHis');
     }
 }

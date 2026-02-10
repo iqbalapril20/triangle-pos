@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class SalesDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('total_amount', function ($data) {
@@ -35,11 +36,13 @@ class SalesDataTable extends DataTable
             });
     }
 
-    public function query(Sale $model) {
+    public function query(Sale $model)
+    {
         return $model->newQuery();
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('sales-table')
             ->columns($this->getColumns())
@@ -60,41 +63,51 @@ class SalesDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('reference')
+                ->title('Referensi')
                 ->className('text-center align-middle'),
 
             Column::make('customer_name')
-                ->title('Customer')
+                ->title('Nama Pelanggan')
                 ->className('text-center align-middle'),
 
             Column::computed('status')
                 ->className('text-center align-middle'),
 
             Column::computed('total_amount')
+                ->title('Total Belanja')
                 ->className('text-center align-middle'),
 
             Column::computed('paid_amount')
+                ->title('Bayar')
                 ->className('text-center align-middle'),
 
             Column::computed('due_amount')
+                ->title('Kembalian')
                 ->className('text-center align-middle'),
 
             Column::computed('payment_status')
+                ->title('Status Pembayaran')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
 
             Column::make('created_at')
+                ->exportable(false)
+                ->printable(false)
                 ->visible(false)
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'Sales_' . date('YmdHis');
     }
 }

@@ -11,6 +11,10 @@
 |
 */
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Modules\People\Entities\Customer;
+use Modules\Sale\Entities\Sale;
+
 Route::group(['middleware' => 'auth'], function () {
 
     //POS
@@ -27,21 +31,22 @@ Route::group(['middleware' => 'auth'], function () {
             'customer' => $customer,
         ])->setPaper('a4');
 
-        return $pdf->stream('sale-'. $sale->reference .'.pdf');
+        return $pdf->stream('sale-' . $sale->reference . '.pdf');
     })->name('sales.pdf');
 
     Route::get('/sales/pos/pdf/{id}', function ($id) {
-        $sale = \Modules\Sale\Entities\Sale::findOrFail($id);
 
-        $pdf = \PDF::loadView('sale::print-pos', [
+        $sale = Sale::findOrFail($id);
+
+        // ambil customer manual (sesuai struktur project kamu)
+        $customer = Customer::find($sale->customer_id);
+
+        $pdf = Pdf::loadView('sale::print-pos', [
             'sale' => $sale,
-        ])->setPaper('a7')
-            ->setOption('margin-top', 8)
-            ->setOption('margin-bottom', 8)
-            ->setOption('margin-left', 5)
-            ->setOption('margin-right', 5);
+            'customer' => $customer,
+        ])->setPaper([0, 0, 210, 500], 'portrait');
 
-        return $pdf->stream('sale-'. $sale->reference .'.pdf');
+        return $pdf->stream('sale-' . $sale->reference . '.pdf');
     })->name('sales.pos.pdf');
 
     //Sales

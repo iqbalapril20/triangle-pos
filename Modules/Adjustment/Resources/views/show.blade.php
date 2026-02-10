@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Adjustment Details')
+@section('title', 'Detail Penyesuaian Stok')
 
 @push('page_css')
     @livewireStyles
@@ -8,9 +8,9 @@
 
 @section('breadcrumb')
     <ol class="breadcrumb border-0 m-0">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('adjustments.index') }}">Adjustments</a></li>
-        <li class="breadcrumb-item active">Details</li>
+        <li class="breadcrumb-item"><a href="{{ route('home') }}">Beranda</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('adjustments.index') }}">Penyesuaian Stok</a></li>
+        <li class="breadcrumb-item active">Detail</li>
     </ol>
 @endsection
 
@@ -23,27 +23,19 @@
                         <div class="table-responsive">
                             <table class="table table-bordered">
                                 <tr>
-                                    <th colspan="2">
-                                        Date
-                                    </th>
-                                    <th colspan="2">
-                                        Reference
-                                    </th>
+                                    <th colspan="2">Tanggal</th>
+                                    <th colspan="2">Kode Penyesuaian</th>
                                 </tr>
                                 <tr>
-                                    <td colspan="2">
-                                        {{ $adjustment->date }}
-                                    </td>
-                                    <td colspan="2">
-                                        {{ $adjustment->reference }}
-                                    </td>
+                                    <td colspan="2">{{ $adjustment->date }}</td>
+                                    <td colspan="2">{{ $adjustment->reference }}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Product Name</th>
-                                    <th>Code</th>
-                                    <th>Quantity</th>
-                                    <th>Type</th>
+                                    <th>Nama Produk</th>
+                                    <th>Kode Produk</th>
+                                    <th>Jumlah</th>
+                                    <th>Jenis</th>
                                 </tr>
 
                                 @foreach($adjustment->adjustedProducts as $adjustedProduct)
@@ -53,9 +45,9 @@
                                         <td>{{ $adjustedProduct->quantity }}</td>
                                         <td>
                                             @if($adjustedProduct->type == 'add')
-                                                (+) Addition
+                                                (+) Penambahan
                                             @else
-                                                (-) Subtraction
+                                                (-) Pengurangan
                                             @endif
                                         </td>
                                     </tr>
