@@ -76,7 +76,7 @@
                                             <option value="Cash">Tunai</option>
                                             <option value="Credit Card">Kartu Kredit</option>
                                             <option value="Bank Transfer">Transfer Bank</option>
-                                            <option value="Cheque">Cek</option>
+                                            <option value="Qris">Qris</option>
                                             <option value="Other">Lainnya</option>
                                         </select>
                                     </div>
@@ -118,7 +118,7 @@
 
 @push('page_scripts')
     <script src="{{ asset('js/jquery-mask-money.js') }}"></script>
-    <script>
+    {{-- <script>
         $(function() {
             // safety check
             if (typeof $.fn.maskMoney === 'undefined') {
@@ -144,6 +144,58 @@
                 const paid_amount = $('#paid_amount').maskMoney('unmasked')[0];
                 $('#paid_amount').val(paid_amount);
             });
+        });
+    </script> --}}
+    <script>
+        // $(document).ready(function() {
+        //     $("#paid_amount").maskMoney({
+        //         prefix: '{{ settings()->currency->symbol }} ',
+        //         thousands: '{{ settings()->currency->thousand_separator }}',
+        //         decimal: '{{ settings()->currency->decimal_separator }}',
+        //         precision: {{ settings()->currency->code === 'IDR' ? 0 : 2 }},
+        //         allowZero: true,
+
+        //         $('#getTotalAmount').click(function() {
+        //             $('#paid_amount').maskMoney('mask', {{ Cart::instance('sale')->total() }});
+        //         });
+
+        //         $('#sale-form').submit(function() {
+        //             var paid_amount = $('#paid_amount').maskMoney('unmasked')[0];
+        //             $('#paid_amount').val(paid_amount);
+        //         });
+        //     });
+        // })
+        $(function() {
+            if (typeof $.fn.maskMoney === 'undefined') {
+                console.error('maskMoney belum ter-load');
+                return;
+            }
+
+            // 1) format tampilan paid_amount
+            $('#paid_amount').maskMoney({
+                prefix: '{{ settings()->currency->symbol }} ',
+                thousands: '{{ settings()->currency->thousand_separator }}', // untuk IDR biasanya "."
+                decimal: '{{ settings()->currency->decimal_separator }}', // untuk IDR biasanya ","
+                precision: {{ settings()->currency->code === 'IDR' ? 0 : 2 }},
+                allowZero: true
+            });
+
+            // 2) supaya value awal dari DB langsung ke-mask (jadi 7.950.000)
+            $('#paid_amount').maskMoney('mask');
+
+            // 3) tombol isi sesuai total (kalau ada tombolnya)
+            $('#getTotalAmount').on('click', function() {
+                // penting: ambil total tanpa desimal biar gak jadi 100x
+                $('#paid_amount').maskMoney('mask', {{ Cart::instance('sale')->total(0, '', '') }});
+            });
+
+            // 4) sebelum submit, ubah jadi angka mentah (tanpa Rp / titik)
+            $('#sale-form').on('submit', function() {
+                // ambil angka saja: "Rp 7.950.000" -> "7950000"
+                const raw = ($('#paid_amount').val() || '').replace(/[^0-9]/g, '');
+                $('#paid_amount').val(raw || 0);
+            });
+
         });
     </script>
 @endpush

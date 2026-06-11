@@ -1,8 +1,8 @@
 <div class="c-sidebar c-sidebar-dark c-sidebar-fixed c-sidebar-lg-show {{ request()->routeIs('app.pos.*') ? 'c-sidebar-minimized' : '' }}" id="sidebar">
     <div class="c-sidebar-brand d-md-down-none">
         <a href="{{ route('home') }}">
-            <img class="c-sidebar-brand-full" src="{{ asset('images/biner.jpg') }}" alt="Site Logo" width="110">
-            <img class="c-sidebar-brand-minimized" src="{{ asset('images/biner.jpg') }}" alt="Site Logo" width="40">
+            <h3 class="c-sidebar-brand-full text-white mb-0" style="font-weight: bold; letter-spacing: 2px;">e-pos</h3>
+            <h6 class="c-sidebar-brand-minimized text-white mb-0" style="font-weight: bold;">e-pos</h6>
         </a>
     </div>
     <ul class="c-sidebar-nav">

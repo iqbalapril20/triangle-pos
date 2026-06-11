@@ -73,6 +73,8 @@ class PosController extends Controller
             ]);
 
             foreach (Cart::instance('sale')->content() as $cart_item) {
+                $product = Product::findOrFail($cart_item->id);
+
                 SaleDetails::create([
                     'sale_id' => $sale->id,
                     'product_id' => $cart_item->id,
@@ -85,9 +87,9 @@ class PosController extends Controller
                     'product_discount_amount' => $cart_item->options->product_discount * 100,
                     'product_discount_type' => $cart_item->options->product_discount_type,
                     'product_tax_amount' => $cart_item->options->product_tax * 100,
+                    'product_cost' => $product->product_cost * 100,
                 ]);
 
-                $product = Product::findOrFail($cart_item->id);
                 $product->update([
                     'product_quantity' => $product->product_quantity - $cart_item->qty
                 ]);

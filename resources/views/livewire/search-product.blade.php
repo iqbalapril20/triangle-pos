@@ -31,10 +31,24 @@
                 <div class="card-body shadow">
                     <ul class="list-group list-group-flush">
                         @foreach($search_results as $result)
-                            <li class="list-group-item list-group-item-action">
-                                <a wire:click="resetQuery" wire:click.prevent="selectProduct({{ $result }})" href="#">
-                                    {{ $result->product_name }} | {{ $result->product_code }}
-                                </a>
+                            @php $outOfStock = $result->product_quantity <= 0; @endphp
+                            <li class="list-group-item {{ $outOfStock ? 'list-group-item-danger' : 'list-group-item-action' }}">
+                                @if($outOfStock)
+                                    <span class="d-flex justify-content-between align-items-center text-danger" style="cursor: not-allowed;">
+                                        <span>
+                                            {{ $result->product_name }} | {{ $result->product_code }}
+                                        </span>
+                                        <span class="badge badge-danger ml-2">
+                                            <i class="bi bi-exclamation-circle-fill"></i> Stok Habis
+                                        </span>
+                                    </span>
+                                @else
+                                    <a wire:click="resetQuery" wire:click.prevent="selectProduct({{ $result }})" href="#"
+                                       class="d-flex justify-content-between align-items-center">
+                                        <span>{{ $result->product_name }} | {{ $result->product_code }}</span>
+                                        <span class="badge badge-info ml-2">Stok: {{ $result->product_quantity }}</span>
+                                    </a>
+                                @endif
                             </li>
                         @endforeach
                         @if($search_results->count() >= $how_many)

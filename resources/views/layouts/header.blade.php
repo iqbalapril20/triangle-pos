@@ -23,10 +23,8 @@
         <a class="c-header-nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
             <i class="bi bi-bell" style="font-size: 20px;"></i>
             <span class="badge badge-pill badge-danger">
-            @php
-                $low_quantity_products = \Modules\Product\Entities\Product::select('id', 'product_quantity', 'product_stock_alert', 'product_code')->whereColumn('product_quantity', '<=', 'product_stock_alert')->get();
-                echo $low_quantity_products->count();
-            @endphp
+                {{ $low_quantity_products->count() }}
+
             </span>
         </a>
         <div class="dropdown-menu dropdown-menu-right dropdown-menu-lg pt-0">
@@ -34,13 +32,13 @@
                 <strong>{{ $low_quantity_products->count() }} Notifications</strong>
             </div>
             @forelse($low_quantity_products as $product)
-                <a class="dropdown-item" href="{{ route('products.show', $product->id) }}">
-                    <i class="bi bi-hash mr-1 text-primary"></i> Product: "{{ $product->product_code }}" is low in quantity!
-                </a>
+            <a class="dropdown-item" href="{{ route('products.show', $product->id) }}">
+                <i class="bi bi-hash mr-1 text-primary"></i> Product: "{{ $product->product_code }}" is low in quantity!
+            </a>
             @empty
-                <a class="dropdown-item" href="#">
-                    <i class="bi bi-app-indicator mr-2 text-danger"></i> No notifications available.
-                </a>
+            <a class="dropdown-item" href="#">
+                <i class="bi bi-app-indicator mr-2 text-danger"></i> No notifications available.
+            </a>
             @endforelse
         </div>
     </li>
@@ -48,7 +46,7 @@
 
     <li class="c-header-nav-item dropdown">
         <a class="c-header-nav-link" data-toggle="dropdown" href="#" role="button"
-           aria-haspopup="true" aria-expanded="false">
+            aria-haspopup="true" aria-expanded="false">
             <div class="c-avatar mr-2">
                 <img class="c-avatar rounded-circle" src="{{ auth()->user()->getFirstMediaUrl('avatars') }}" alt="Profile Image">
             </div>

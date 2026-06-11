@@ -13,19 +13,25 @@
                 </div>
 
                 @forelse($products as $product)
-                    <div wire:click.prevent="selectProduct({{ $product }})"
-                         class="col-lg-4 col-md-6 col-xl-3"
-                         style="cursor: pointer;">
-                        <div class="card border-0 shadow h-100">
+                    @php $outOfStock = $product->product_quantity <= 0; @endphp
+                    <div @if(!$outOfStock) wire:click.prevent="selectProduct({{ $product }})" @endif
+                         class="col-lg-4 col-md-6 col-xl-3 mb-3"
+                         style="cursor: {{ $outOfStock ? 'not-allowed' : 'pointer' }};">
+                        <div class="card border-0 shadow h-100 {{ $outOfStock ? 'opacity-50' : '' }}">
                             <div class="position-relative">
                                 <img height="200"
                                      src="{{ $product->getFirstMediaUrl('images') }}"
                                      class="card-img-top"
                                      alt="Gambar Produk">
-                                <div class="badge badge-info mb-3 position-absolute"
+                                <div class="badge {{ $outOfStock ? 'badge-danger' : 'badge-info' }} mb-3 position-absolute"
                                      style="left:10px;top: 10px;">
-                                    Stok: {{ $product->product_quantity }}
+                                    {{ $outOfStock ? 'Stok Habis' : 'Stok: ' . $product->product_quantity }}
                                 </div>
+                                @if($outOfStock)
+                                    <div class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
+                                         style="top:0;left:0;background:rgba(0,0,0,0.08);">
+                                    </div>
+                                @endif
                             </div>
                             <div class="card-body">
                                 <div class="mb-2">
@@ -39,6 +45,11 @@
                                 <p class="card-text font-weight-bold">
                                     {{ format_currency($product->product_price) }}
                                 </p>
+                                @if($outOfStock)
+                                    <small class="text-danger font-weight-bold">
+                                        <i class="bi bi-exclamation-circle-fill"></i> Tidak tersedia
+                                    </small>
+                                @endif
                             </div>
                         </div>
                     </div>

@@ -49,12 +49,9 @@ class Checkout extends Component
     }
 
     public function proceed() {
-        if ($this->customer_id != null) {
-            $this->dispatch('showCheckoutModal');
-        } else {
-            session()->flash('message', 'Please Select Customer!');
-        }
-    }
+    $this->dispatch('showCheckoutModal');
+}
+
 
     public function calculateTotal() {
         return Cart::instance($this->cart_instance)->total() + $this->shipping;

@@ -18,14 +18,16 @@ use Modules\SalesReturn\Http\Requests\UpdateSaleReturnRequest;
 class SalesReturnController extends Controller
 {
 
-    public function index(SaleReturnsDataTable $dataTable) {
+    public function index(SaleReturnsDataTable $dataTable)
+    {
         abort_if(Gate::denies('access_sale_returns'), 403);
 
         return $dataTable->render('salesreturn::index');
     }
 
 
-    public function create() {
+    public function create()
+    {
         abort_if(Gate::denies('create_sale_returns'), 403);
 
         Cart::instance('sale_return')->destroy();
@@ -34,7 +36,8 @@ class SalesReturnController extends Controller
     }
 
 
-    public function store(StoreSaleReturnRequest $request) {
+    public function store(StoreSaleReturnRequest $request)
+    {
         DB::transaction(function () use ($request) {
             $due_amount = $request->total_amount - $request->paid_amount;
 
@@ -65,6 +68,7 @@ class SalesReturnController extends Controller
             ]);
 
             foreach (Cart::instance('sale_return')->content() as $cart_item) {
+                $product = Product::findOrFail($cart_item->id);
                 SaleReturnDetail::create([
                     'sale_return_id' => $sale_return->id,
                     'product_id' => $cart_item->id,
@@ -77,10 +81,10 @@ class SalesReturnController extends Controller
                     'product_discount_amount' => $cart_item->options->product_discount * 100,
                     'product_discount_type' => $cart_item->options->product_discount_type,
                     'product_tax_amount' => $cart_item->options->product_tax * 100,
+                    'product_cost' => $product->product_cost * 100,
                 ]);
 
                 if ($request->status == 'Completed') {
-                    $product = Product::findOrFail($cart_item->id);
                     $product->update([
                         'product_quantity' => $product->product_quantity + $cart_item->qty
                     ]);
@@ -92,7 +96,7 @@ class SalesReturnController extends Controller
             if ($sale_return->paid_amount > 0) {
                 SaleReturnPayment::create([
                     'date' => $request->date,
-                    'reference' => 'INV/'.$sale_return->reference,
+                    'reference' => 'INV/' . $sale_return->reference,
                     'amount' => $sale_return->paid_amount,
                     'sale_return_id' => $sale_return->id,
                     'payment_method' => $request->payment_method
@@ -106,7 +110,8 @@ class SalesReturnController extends Controller
     }
 
 
-    public function show(SaleReturn $sale_return) {
+    public function show(SaleReturn $sale_return)
+    {
         abort_if(Gate::denies('show_sale_returns'), 403);
 
         $customer = Customer::findOrFail($sale_return->customer_id);
@@ -115,7 +120,8 @@ class SalesReturnController extends Controller
     }
 
 
-    public function edit(SaleReturn $sale_return) {
+    public function edit(SaleReturn $sale_return)
+    {
         abort_if(Gate::denies('edit_sale_returns'), 403);
 
         $sale_return_details = $sale_return->saleReturnDetails;
@@ -147,7 +153,8 @@ class SalesReturnController extends Controller
     }
 
 
-    public function update(UpdateSaleReturnRequest $request, SaleReturn $sale_return) {
+    public function update(UpdateSaleReturnRequest $request, SaleReturn $sale_return)
+    {
         DB::transaction(function () use ($request, $sale_return) {
             $due_amount = $request->total_amount - $request->paid_amount;
 
@@ -189,6 +196,7 @@ class SalesReturnController extends Controller
             ]);
 
             foreach (Cart::instance('sale_return')->content() as $cart_item) {
+                $product = Product::findOrFail($cart_item->id);
                 SaleReturnDetail::create([
                     'sale_return_id' => $sale_return->id,
                     'product_id' => $cart_item->id,
@@ -201,10 +209,10 @@ class SalesReturnController extends Controller
                     'product_discount_amount' => $cart_item->options->product_discount * 100,
                     'product_discount_type' => $cart_item->options->product_discount_type,
                     'product_tax_amount' => $cart_item->options->product_tax * 100,
+                    'product_cost' => $product->product_cost * 100,
                 ]);
 
                 if ($request->status == 'Completed') {
-                    $product = Product::findOrFail($cart_item->id);
                     $product->update([
                         'product_quantity' => $product->product_quantity + $cart_item->qty
                     ]);
@@ -220,8 +228,18 @@ class SalesReturnController extends Controller
     }
 
 
-    public function destroy(SaleReturn $sale_return) {
+    public function destroy(SaleReturn $sale_return)
+    {
         abort_if(Gate::denies('delete_sale_returns'), 403);
+
+        if ($sale_return->status == 'Completed') {
+            foreach ($sale_return->saleReturnDetails as $sale_return_detail) {
+                $product = Product::findOrFail($sale_return_detail->product_id);
+                $product->update([
+                    'product_quantity' => $product->product_quantity - $sale_return_detail->quantity
+                ]);
+            }
+        }
 
         $sale_return->delete();
 

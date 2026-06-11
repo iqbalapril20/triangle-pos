@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Customer Details')
+@section('title', 'Detail Pelanggan')
 
 @section('breadcrumb')
     <ol class="breadcrumb border-0 m-0">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('customers.index') }}">Customers</a></li>
-        <li class="breadcrumb-item active">Details</li>
+        <li class="breadcrumb-item"><a href="{{ route('home') }}">Beranda</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('customers.index') }}">Pelanggan</a></li>
+        <li class="breadcrumb-item active">Detail</li>
     </ol>
 @endsection
 
@@ -19,27 +19,27 @@
                         <div class="table-responsive">
                             <table class="table table-bordered">
                                 <tr>
-                                    <th>Customer Name</th>
+                                    <th>Nama Pelanggan</th>
                                     <td>{{ $customer->customer_name }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Customer Email</th>
+                                    <th>Email</th>
                                     <td>{{ $customer->customer_email }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Customer Phone</th>
+                                    <th>No. HP</th>
                                     <td>{{ $customer->customer_phone }}</td>
                                 </tr>
                                 <tr>
-                                    <th>City</th>
+                                    <th>Kota</th>
                                     <td>{{ $customer->city }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Country</th>
+                                    <th>Negara</th>
                                     <td>{{ $customer->country }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Address</th>
+                                    <th>Alamat</th>
                                     <td>{{ $customer->address }}</td>
                                 </tr>
                             </table>
@@ -50,4 +50,3 @@
         </div>
     </div>
 @endsection
-

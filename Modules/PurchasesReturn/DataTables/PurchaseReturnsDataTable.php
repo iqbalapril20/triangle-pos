@@ -12,7 +12,8 @@ use Yajra\DataTables\Services\DataTable;
 class PurchaseReturnsDataTable extends DataTable
 {
 
-    public function dataTable($query) {
+    public function dataTable($query)
+    {
         return datatables()
             ->eloquent($query)
             ->addColumn('total_amount', function ($data) {
@@ -35,11 +36,13 @@ class PurchaseReturnsDataTable extends DataTable
             });
     }
 
-    public function query(PurchaseReturn $model) {
+    public function query(PurchaseReturn $model)
+    {
         return $model->newQuery();
     }
 
-    public function html() {
+    public function html()
+    {
         return $this->builder()
             ->setTableId('purchase-returns-table')
             ->columns($this->getColumns())
@@ -48,6 +51,9 @@ class PurchaseReturnsDataTable extends DataTable
                                 'tr' .
                                 <'row'<'col-md-5'i><'col-md-7 mt-2'p>>")
             ->orderBy(8)
+            ->language([
+                'url' => 'https://cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json'
+            ])
             ->buttons(
                 Button::make('excel')
                     ->text('<i class="bi bi-file-earmark-excel-fill"></i> Excel'),
@@ -60,9 +66,11 @@ class PurchaseReturnsDataTable extends DataTable
             );
     }
 
-    protected function getColumns() {
+    protected function getColumns()
+    {
         return [
             Column::make('reference')
+                ->title('Referensi')
                 ->className('text-center align-middle'),
 
             Column::make('supplier_name')
@@ -70,21 +78,27 @@ class PurchaseReturnsDataTable extends DataTable
                 ->className('text-center align-middle'),
 
             Column::computed('status')
+                ->title('Status')
                 ->className('text-center align-middle'),
 
             Column::computed('total_amount')
+                ->title('Total Keseluruhan')
                 ->className('text-center align-middle'),
 
             Column::computed('paid_amount')
+                ->title('Total Dibayar')
                 ->className('text-center align-middle'),
 
             Column::computed('due_amount')
+                ->title('Sisa Tagihan')
                 ->className('text-center align-middle'),
 
             Column::computed('payment_status')
+                ->title('Status Pembayaran')
                 ->className('text-center align-middle'),
 
             Column::computed('action')
+                ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
                 ->className('text-center align-middle'),
@@ -94,7 +108,8 @@ class PurchaseReturnsDataTable extends DataTable
         ];
     }
 
-    protected function filename(): string {
+    protected function filename(): string
+    {
         return 'PurchaseReturns_' . date('YmdHis');
     }
 }

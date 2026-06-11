@@ -18,9 +18,7 @@
 <body class="c-app flex-row align-items-center">
 <div class="container">
     <div class="row mb-3">
-        <div class="col-12 d-flex justify-content-center">
-            <img width="200" src="{{ asset('images/logo-dark.png') }}" alt="Logo">
-        </div>
+            <h1 class="text-center font-weight-bold mb-4" style="letter-spacing: 2px;">e-pos</h1>
     </div>
     <div class="row justify-content-center">
         <div class="col-md-5">

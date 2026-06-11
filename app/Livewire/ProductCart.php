@@ -25,7 +25,8 @@ class ProductCart extends Component
 
     private $product;
 
-    public function mount($cartInstance, $data = null) {
+    public function mount($cartInstance, $data = null)
+    {
         $this->cart_instance = $cartInstance;
 
         if ($data) {
@@ -63,7 +64,8 @@ class ProductCart extends Component
         }
     }
 
-    public function render() {
+    public function render()
+    {
         $cart_items = Cart::instance($this->cart_instance)->content();
 
         return view('livewire.product-cart', [
@@ -71,7 +73,8 @@ class ProductCart extends Component
         ]);
     }
 
-    public function productSelected($product) {
+    public function productSelected($product)
+    {
         $cart = Cart::instance($this->cart_instance);
 
         $exists = $cart->search(function ($cartItem, $rowId) use ($product) {
@@ -110,20 +113,24 @@ class ProductCart extends Component
         $this->item_discount[$product['id']] = 0;
     }
 
-    public function removeItem($row_id) {
+    public function removeItem($row_id)
+    {
         Cart::instance($this->cart_instance)->remove($row_id);
     }
 
-    public function updatedGlobalTax() {
-        Cart::instance($this->cart_instance)->setGlobalTax((integer)$this->global_tax);
+    public function updatedGlobalTax()
+    {
+        Cart::instance($this->cart_instance)->setGlobalTax((int)$this->global_tax);
     }
 
-    public function updatedGlobalDiscount() {
-        Cart::instance($this->cart_instance)->setGlobalDiscount((integer)$this->global_discount);
+    public function updatedGlobalDiscount()
+    {
+        Cart::instance($this->cart_instance)->setGlobalDiscount((int)$this->global_discount);
     }
 
-    public function updateQuantity($row_id, $product_id) {
-        if  ($this->cart_instance == 'sale' || $this->cart_instance == 'purchase_return') {
+    public function updateQuantity($row_id, $product_id)
+    {
+        if ($this->cart_instance == 'sale' || $this->cart_instance == 'purchase_return') {
             if ($this->check_quantity[$product_id] < $this->quantity[$product_id]) {
                 session()->flash('message', 'The requested quantity is not available in stock.');
                 return;
@@ -148,33 +155,68 @@ class ProductCart extends Component
         ]);
     }
 
-    public function updatedDiscountType($value, $name) {
+    public function updatedDiscountType($value, $name)
+    {
         $this->item_discount[$name] = 0;
     }
 
-    public function discountModalRefresh($product_id, $row_id) {
+    public function discountModalRefresh($product_id, $row_id)
+    {
         $this->updateQuantity($row_id, $product_id);
     }
 
-    public function setProductDiscount($row_id, $product_id) {
+    // public function setProductDiscount($row_id, $product_id)
+    // {
+    //     $cart_item = Cart::instance($this->cart_instance)->get($row_id);
+
+    //     if ($this->discount_type[$product_id] == 'fixed') {
+    //         Cart::instance($this->cart_instance)
+    //             ->update($row_id, [
+    //                 'price' => ($cart_item->price + $cart_item->options->product_discount) - $this->item_discount[$product_id]
+    //             ]);
+
+    //         $discount_amount = $this->item_discount[$product_id];
+
+    //         $this->updateCartOptions($row_id, $product_id, $cart_item, $discount_amount);
+    //     } elseif ($this->discount_type[$product_id] == 'percentage') {
+    //         $discount_amount = ($cart_item->price + $cart_item->options->product_discount) * ($this->item_discount[$product_id] / 100);
+
+    //         Cart::instance($this->cart_instance)
+    //             ->update($row_id, [
+    //                 'price' => ($cart_item->price + $cart_item->options->product_discount) - $discount_amount
+    //             ]);
+
+    //         $this->updateCartOptions($row_id, $product_id, $cart_item, $discount_amount);
+    //     }
+
+    //     session()->flash('discount_message' . $product_id, 'Discount added to the product!');
+    // }
+    public function setProductDiscount($row_id, $product_id)
+    {
         $cart_item = Cart::instance($this->cart_instance)->get($row_id);
 
         if ($this->discount_type[$product_id] == 'fixed') {
-            Cart::instance($this->cart_instance)
-                ->update($row_id, [
-                    'price' => ($cart_item->price + $cart_item->options->product_discount) - $this->item_discount[$product_id]
-                ]);
 
-            $discount_amount = $this->item_discount[$product_id];
+            $discount_amount = (float) $this->item_discount[$product_id];
+
+            // ✅ warning diskon vs margin
+            $this->flashDiscountWarningIfTooHigh((int)$product_id, $discount_amount, $cart_item);
+
+            Cart::instance($this->cart_instance)->update($row_id, [
+                'price' => ($cart_item->price + $cart_item->options->product_discount) - $discount_amount
+            ]);
 
             $this->updateCartOptions($row_id, $product_id, $cart_item, $discount_amount);
         } elseif ($this->discount_type[$product_id] == 'percentage') {
-            $discount_amount = ($cart_item->price + $cart_item->options->product_discount) * ($this->item_discount[$product_id] / 100);
 
-            Cart::instance($this->cart_instance)
-                ->update($row_id, [
-                    'price' => ($cart_item->price + $cart_item->options->product_discount) - $discount_amount
-                ]);
+            $discount_amount = (float) (($cart_item->price + $cart_item->options->product_discount) * ($this->item_discount[$product_id] / 100));
+
+            // ✅ warning diskon vs margin
+            $this->flashDiscountWarningIfTooHigh((int)$product_id, $discount_amount, $cart_item);
+
+            Cart::instance($this->cart_instance)->update($row_id, [
+                'price' => ($cart_item->price + $cart_item->options->product_discount) - $discount_amount
+            ]);
 
             $this->updateCartOptions($row_id, $product_id, $cart_item, $discount_amount);
         }
@@ -182,7 +224,9 @@ class ProductCart extends Component
         session()->flash('discount_message' . $product_id, 'Discount added to the product!');
     }
 
-    public function updatePrice($row_id, $product_id) {
+
+    public function updatePrice($row_id, $product_id)
+    {
         $product = Product::findOrFail($product_id);
 
         $cart_item = Cart::instance($this->cart_instance)->get($row_id);
@@ -203,7 +247,8 @@ class ProductCart extends Component
         ]);
     }
 
-    public function calculate($product, $new_price = null) {
+    public function calculate($product, $new_price = null)
+    {
         if ($new_price) {
             $product_price = $new_price;
         } else {
@@ -238,7 +283,8 @@ class ProductCart extends Component
         return ['price' => $price, 'unit_price' => $unit_price, 'product_tax' => $product_tax, 'sub_total' => $sub_total];
     }
 
-    public function updateCartOptions($row_id, $product_id, $cart_item, $discount_amount) {
+    public function updateCartOptions($row_id, $product_id, $cart_item, $discount_amount)
+    {
         Cart::instance($this->cart_instance)->update($row_id, ['options' => [
             'sub_total'             => $cart_item->price * $cart_item->qty,
             'code'                  => $cart_item->options->code,
@@ -249,5 +295,34 @@ class ProductCart extends Component
             'product_discount'      => $discount_amount,
             'product_discount_type' => $this->discount_type[$product_id],
         ]]);
+    }
+    private function flashDiscountWarningIfTooHigh(int $product_id, float $discount_amount, $cart_item): void
+    {
+        // Warning cuma untuk penjualan (sale)
+        if ($this->cart_instance !== 'sale') {
+            return;
+        }
+
+        $product = Product::find($product_id);
+        if (!$product) return;
+
+        // unit_price = harga dasar sebelum diskon (di cart options sudah ada)
+        $sellPrice = (float) $cart_item->options->unit_price;   // harga jual per unit
+        $hpp       = (float) $product->product_cost;            // HPP per unit
+
+        $margin = $sellPrice - $hpp;
+
+        // Kalau margin sudah <= 0, berarti jual di bawah/tepat HPP
+        if ($margin <= 0) {
+            session()->flash('discount_warning' . $product_id, '⚠️ Harga jual sudah sama/di bawah HPP. Diskon akan membuat rugi.');
+            return;
+        }
+
+        if ($discount_amount > $margin) {
+            session()->flash(
+                'discount_warning' . $product_id,
+                '⚠️ Diskon terlalu tinggi. Diskon melebihi margin (Harga Jual - HPP), transaksi akan rugi.'
+            );
+        }
     }
 }

@@ -57,6 +57,10 @@
             <td>Total Penjualan ({{ $data['penjualan']['trx_count'] ?? 0 }} transaksi)</td>
             <td class="right">{{ format_currency($data['penjualan']['total_sales']) }}</td>
         </tr>
+        <tr>
+            <td>Retur Penjualan ({{ $data['retur_penjualan']['trx_count'] ?? 0 }} transaksi)</td>
+            <td class="right">{{ format_currency($data['retur_penjualan']['total'] ?? 0) }}</td>
+        </tr>
     </table>
 
     {{-- B. KEUNTUNGAN --}}
@@ -67,9 +71,12 @@
             <th class="right">Jumlah</th>
         </tr>
         <tr>
-            <td>Keuntungan</td>
-            <td class="right">{{ format_currency($data['keuntungan']['profit'] ?? ($data['profit_amount'] ?? 0)) }}
-            </td>
+            <td>Laba Kotor (Omset - HPP)</td>
+            <td class="right">{{ format_currency($data['keuntungan']['laba_kotor'] ?? ($data['laba_kotor'] ?? 0)) }}</td>
+        </tr>
+        <tr>
+            <td><b>Laba Bersih (Laba Kotor - Biaya Operasional)</b></td>
+            <td class="right"><b>{{ format_currency($data['keuntungan']['laba_bersih'] ?? ($data['laba_bersih'] ?? 0)) }}</b></td>
         </tr>
     </table>
 
@@ -83,6 +90,10 @@
         <tr>
             <td>Pembelian ({{ $data['pembelian']['trx_count'] ?? 0 }} transaksi)</td>
             <td class="right">{{ format_currency($data['pembelian']['total']) }}</td>
+        </tr>
+        <tr>
+            <td>Retur Pembelian ({{ $data['retur_pembelian']['trx_count'] ?? 0 }} transaksi)</td>
+            <td class="right">{{ format_currency($data['retur_pembelian']['total'] ?? 0) }}</td>
         </tr>
         <tr>
             <td>Biaya Operasional</td>
@@ -111,6 +122,22 @@
         </tr>
     </table>
 
+    {{-- E. PIUTANG & HUTANG --}}
+    <h4 style="margin: 14px 0 6px;">E. Piutang & Hutang</h4>
+    <table width="100%" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse;">
+        <tr>
+            <th>Keterangan</th>
+            <th class="right">Jumlah</th>
+        </tr>
+        <tr>
+            <td>Piutang Pelanggan</td>
+            <td class="right">{{ format_currency($data['piutang']) }}</td>
+        </tr>
+        <tr>
+            <td>Hutang Toko</td>
+            <td class="right">{{ format_currency($data['hutang']) }}</td>
+        </tr>
+    </table>
 
 </body>
 

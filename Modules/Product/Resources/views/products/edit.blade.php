@@ -130,7 +130,7 @@
                                     <div class="form-group">
                                         <label for="product_quantity">Jumlah Stok <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" name="product_quantity" required
-                                            value="{{ $product->product_quantity }}" min="1">
+                                            value="{{ $product->product_quantity }}" min="0">
                                     </div>
                                 </div>
                                 <div class="col-md-6">

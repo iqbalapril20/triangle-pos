@@ -78,6 +78,8 @@ class SaleController extends Controller
             ]);
 
             foreach (Cart::instance('sale')->content() as $cart_item) {
+                $product = Product::findOrFail($cart_item->id);
+
                 SaleDetails::create([
                     'sale_id' => $sale->id,
                     'product_id' => $cart_item->id,
@@ -90,10 +92,10 @@ class SaleController extends Controller
                     'product_discount_amount' => $cart_item->options->product_discount * 100,
                     'product_discount_type' => $cart_item->options->product_discount_type,
                     'product_tax_amount' => $cart_item->options->product_tax * 100,
+                    'product_cost' => $product->product_cost * 100,
                 ]);
 
                 if ($request->status == 'Shipped' || $request->status == 'Completed') {
-                    $product = Product::findOrFail($cart_item->id);
                     $product->update([
                         'product_quantity' => $product->product_quantity - $cart_item->qty
                     ]);
@@ -122,7 +124,7 @@ class SaleController extends Controller
     {
         abort_if(Gate::denies('show_sales'), 403);
 
-        $customer = Customer::findOrFail($sale->customer_id);
+        $customer = Customer::find($sale->customer_id);
 
         return view('sale::show', compact('sale', 'customer'));
     }
@@ -213,6 +215,8 @@ class SaleController extends Controller
             ]);
 
             foreach (Cart::instance('sale')->content() as $cart_item) {
+                $product = Product::findOrFail($cart_item->id);
+
                 SaleDetails::create([
                     'sale_id' => $sale->id,
                     'product_id' => $cart_item->id,
@@ -225,10 +229,10 @@ class SaleController extends Controller
                     'product_discount_amount' => $cart_item->options->product_discount * 100,
                     'product_discount_type' => $cart_item->options->product_discount_type,
                     'product_tax_amount' => $cart_item->options->product_tax * 100,
+                    'product_cost' => $product->product_cost * 100,
                 ]);
 
                 if ($request->status == 'Shipped' || $request->status == 'Completed') {
-                    $product = Product::findOrFail($cart_item->id);
                     $product->update([
                         'product_quantity' => $product->product_quantity - $cart_item->qty
                     ]);
@@ -247,6 +251,15 @@ class SaleController extends Controller
     public function destroy(Sale $sale)
     {
         abort_if(Gate::denies('delete_sales'), 403);
+
+        if ($sale->status == 'Shipped' || $sale->status == 'Completed') {
+            foreach ($sale->saleDetails as $sale_detail) {
+                $product = \Modules\Product\Entities\Product::findOrFail($sale_detail->product_id);
+                $product->update([
+                    'product_quantity' => $product->product_quantity + $sale_detail->quantity
+                ]);
+            }
+        }
 
         $sale->delete();
 

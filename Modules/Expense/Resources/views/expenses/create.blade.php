@@ -76,8 +76,7 @@
         </form>
     </div>
 @endsection
-
-@push('page_scripts')
+{{-- @push('page_scripts')
     <script src="{{ asset('js/jquery-mask-money.js') }}"></script>
     <script>
         $(document).ready(function() {
@@ -85,12 +84,50 @@
                 prefix: '{{ settings()->currency->symbol }}',
                 thousands: '{{ settings()->currency->thousand_separator }}',
                 decimal: '{{ settings()->currency->decimal_separator }}',
+                precision: {{ settings()->currency->code === 'IDR' ? 0 : 2 }},
             });
 
             $('#expense-form').submit(function() {
                 var amount = $('#amount').maskMoney('unmasked')[0];
                 $('#amount').val(amount);
             });
+        });
+    </script>
+@endpush --}}
+@push('page_scripts')
+    <script src="{{ asset('js/jquery-mask-money.js') }}"></script>
+    <script>
+        $(function() {
+            if (typeof $.fn.maskMoney === 'undefined') {
+                console.error('maskMoney belum ter-load');
+                return;
+            }
+
+            // 1) format tampilan amount
+            $('#amount').maskMoney({
+                prefix: '{{ settings()->currency->symbol }} ',
+                thousands: '{{ settings()->currency->thousand_separator }}', // untuk IDR biasanya "."
+                decimal: '{{ settings()->currency->decimal_separator }}', // untuk IDR biasanya ","
+                precision: {{ settings()->currency->code === 'IDR' ? 0 : 2 }},
+                allowZero: true
+            });
+
+            // 2) supaya value awal dari DB langsung ke-mask (jadi 7.950.000)
+            $('#amount').maskMoney('mask');
+
+            // 3) tombol isi sesuai total (kalau ada tombolnya)
+            // $('#getTotalAmount').on('click', function() {
+            //     // penting: ambil total tanpa desimal biar gak jadi 100x
+            //     $('#amount').maskMoney('mask', {{ Cart::instance('expense')->total(0, '', '') }});
+            // });
+
+            // 4) sebelum submit, ubah jadi angka mentah (tanpa Rp / titik)
+            $('#expense-form').on('submit', function() {
+                // ambil angka saja: "Rp 7.950.000" -> "7950000"
+                const raw = ($('#amount').val() || '').replace(/[^0-9]/g, '');
+                $('#amount').val(raw || 0);
+            });
+
         });
     </script>
 @endpush

@@ -52,7 +52,7 @@
                                     <option value="Cash">Tunai</option>
                                     <option value="Credit Card">Kartu Kredit</option>
                                     <option value="Bank Transfer">Transfer Bank</option>
-                                    <option value="Cheque">Cek</option>
+                                    <option value="Qris">Qris</option>
                                     <option value="Other">Lainnya</option>
                                 </select>
                             </div>

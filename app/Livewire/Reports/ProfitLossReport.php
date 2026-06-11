@@ -25,9 +25,13 @@ class ProfitLossReport extends Component
     public $total_purchase_returns, $purchase_returns_amount;
     public $expenses_amount;
     public $profit_amount;
+    public $laba_kotor;
+    public $laba_bersih;
     public $payments_received_amount;
     public $payments_sent_amount;
     public $payments_net_amount;
+    public $piutang;
+    public $hutang;
 
     protected $rules = [
         'start_date' => 'required|date|before:end_date',
@@ -46,9 +50,13 @@ class ProfitLossReport extends Component
         $this->purchases_amount = 0;
         $this->total_purchase_returns = 0;
         $this->purchase_returns_amount = 0;
+        $this->laba_kotor = 0;
+        $this->laba_bersih = 0;
         $this->payments_received_amount = 0;
         $this->payments_sent_amount = 0;
         $this->payments_net_amount = 0;
+        $this->piutang = 0;
+        $this->hutang = 0;
     }
 
     public function render()
@@ -151,16 +159,35 @@ class ProfitLossReport extends Component
 
         $this->profit_amount = $this->calculateProfit();
 
-        // $this->payments_received_amount = $this->calculatePaymentsReceived();
-        // UANG MASUK = TOTAL PENJUALAN (TOTAL BELANJA)
-        $this->payments_received_amount = $this->sales_amount;
+        // --- DUAL LABA: Kotor & Bersih ---
+        $this->laba_kotor = $this->profit_amount; // Omset - HPP (sudah dihitung di calculateProfit)
+        $this->laba_bersih = $this->laba_kotor - $this->expenses_amount;
 
-
+        // --- ARUS KAS RIIL (Berbasis Pembayaran Tunai Nyata) ---
+        $this->payments_received_amount = $this->calculatePaymentsReceived();
         $this->payments_sent_amount = $this->calculatePaymentsSent();
-        // + $this->calculateChangeAmount();
-
-
         $this->payments_net_amount = $this->payments_received_amount - $this->payments_sent_amount;
+
+        // --- TAMBAHAN PIUTANG DAN HUTANG ---
+        $this->piutang = Sale::completed()
+            ->whereIn('payment_status', ['Partial', 'Unpaid'])
+            ->when($this->start_date, function ($query) {
+                return $query->whereDate('date', '>=', $this->start_date);
+            })
+            ->when($this->end_date, function ($query) {
+                return $query->whereDate('date', '<=', $this->end_date);
+            })
+            ->sum('due_amount') / 100;
+
+        $this->hutang = Purchase::completed()
+            ->whereIn('payment_status', ['Partial', 'Unpaid'])
+            ->when($this->start_date, function ($query) {
+                return $query->whereDate('date', '>=', $this->start_date);
+            })
+            ->when($this->end_date, function ($query) {
+                return $query->whereDate('date', '<=', $this->end_date);
+            })
+            ->sum('due_amount') / 100;
     }
 
     public function calculateProfit()
@@ -178,7 +205,25 @@ class ProfitLossReport extends Component
 
         foreach ($sales as $sale) {
             foreach ($sale->saleDetails as $saleDetail) {
-                $product_costs += $saleDetail->product->product_cost;
+                $cost = $saleDetail->product_cost ?? ($saleDetail->product ? $saleDetail->product->product_cost : 0);
+                $product_costs += (float) $cost * (float) $saleDetail->quantity;
+            }
+        }
+
+        // --- KURANGI HPP DARI BARANG YANG DIRETUR ---
+        $saleReturns = SaleReturn::completed()
+            ->when($this->start_date, function ($query) {
+                return $query->whereDate('date', '>=', $this->start_date);
+            })
+            ->when($this->end_date, function ($query) {
+                return $query->whereDate('date', '<=', $this->end_date);
+            })
+            ->with('saleReturnDetails')->get();
+
+        foreach ($saleReturns as $return) {
+            foreach ($return->saleReturnDetails as $detail) {
+                $cost = $detail->product_cost ?? ($detail->product ? $detail->product->product_cost : 0);
+                $product_costs -= (float) $cost * (float) $detail->quantity;
             }
         }
 
@@ -210,6 +255,7 @@ class ProfitLossReport extends Component
 
     public function calculatePaymentsSent()
     {
+        // Menggunakan tabel PurchasePayment (uang tunai nyata yang dibayarkan ke supplier)
         $purchase_payments = PurchasePayment::when($this->start_date, function ($query) {
             return $query->whereDate('date', '>=', $this->start_date);
         })

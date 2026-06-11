@@ -18,6 +18,13 @@ class ReportsController extends Controller
         return view('reports::profit-loss.index');
     }
 
+    public function productReport()
+    {
+        abort_if(Gate::denies('access_reports'), 403);
+
+        return view('reports::product.index');
+    }
+
     public function paymentsReport()
     {
         abort_if(Gate::denies('access_reports'), 403);
@@ -68,6 +75,6 @@ class ReportsController extends Controller
             'data'  => $data,
             'start' => $start,
             'end'   => $end,
-        ])->stream('laporan-laba-rugi.pdf');
+        ])->stream('laporan.pdf');
     }
 }

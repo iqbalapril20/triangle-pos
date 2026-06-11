@@ -10,7 +10,7 @@
                                     <label>Tanggal Mulai <span class="text-danger">*</span></label>
                                     <input wire:model="start_date" type="date" class="form-control" name="start_date">
                                     @error('start_date')
-                                        <span class="text-danger mt-1">{{ $message }}</span>
+                                    <span class="text-danger mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -19,7 +19,7 @@
                                     <label>Tanggal Selesai <span class="text-danger">*</span></label>
                                     <input wire:model="end_date" type="date" class="form-control" name="end_date">
                                     @error('end_date')
-                                        <span class="text-danger mt-1">{{ $message }}</span>
+                                    <span class="text-danger mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -66,7 +66,7 @@
         </div>
 
         {{-- Retur Penjualan --}}
-        {{-- <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-3 d-flex align-items-center">
                     <div class="bg-primary p-3 mfe-3 rounded">
@@ -78,18 +78,34 @@
                     </div>
                 </div>
             </div>
-        </div> --}}
+        </div>
 
-        {{-- Keuntungan --}}
+
+        {{-- Laba Kotor --}}
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="bg-success p-3 mfe-3 rounded">
+                        <i class="bi bi-trophy font-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-value text-success">{{ format_currency($laba_kotor) }}</div>
+                        <div class="text-uppercase font-weight-bold small">Laba Kotor</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Laba Bersih --}}
         <div class="col-12 col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-3 d-flex align-items-center">
                     <div class="bg-primary p-3 mfe-3 rounded">
-                        <i class="bi bi-trophy font-2xl"></i>
+                        <i class="bi bi-star font-2xl"></i>
                     </div>
                     <div>
-                        <div class="text-value text-primary">{{ format_currency($profit_amount) }}</div>
-                        <div class="text-uppercase font-weight-bold small">Keuntungan</div>
+                        <div class="text-value text-primary">{{ format_currency($laba_bersih) }}</div>
+                        <div class="text-uppercase font-weight-bold small">Laba Bersih</div>
                     </div>
                 </div>
             </div>
@@ -111,7 +127,7 @@
         </div>
 
         {{-- Retur Pembelian --}}
-        {{-- <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-3 d-flex align-items-center">
                     <div class="bg-primary p-3 mfe-3 rounded">
@@ -123,7 +139,7 @@
                     </div>
                 </div>
             </div>
-        </div> --}}
+        </div>
 
         {{-- Biaya Operasional --}}
         <div class="col-12 col-lg-4">
@@ -180,6 +196,36 @@
                     <div>
                         <div class="text-value text-primary">{{ format_currency($payments_net_amount) }}</div>
                         <div class="text-uppercase font-weight-bold small">Selisih Kas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Piutang --}}
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="bg-warning text-white p-3 mfe-3 rounded">
+                        <i class="bi bi-journal-arrow-down font-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-value text-warning">{{ format_currency($piutang) }}</div>
+                        <div class="text-uppercase font-weight-bold small">Piutang Pelanggan</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Hutang --}}
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="bg-danger text-white p-3 mfe-3 rounded">
+                        <i class="bi bi-journal-arrow-up font-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-value text-danger">{{ format_currency($hutang) }}</div>
+                        <div class="text-uppercase font-weight-bold small">Hutang Toko</div>
                     </div>
                 </div>
             </div>

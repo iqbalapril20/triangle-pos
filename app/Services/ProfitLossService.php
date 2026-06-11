@@ -4,13 +4,13 @@ namespace App\Services;
 
 use Modules\Expense\Entities\Expense;
 use Modules\Purchase\Entities\Purchase;
-use Modules\Purchase\Entities\PurchasePayment;
 use Modules\PurchasesReturn\Entities\PurchaseReturn;
-use Modules\PurchasesReturn\Entities\PurchaseReturnPayment;
 use Modules\Sale\Entities\Sale;
 use Modules\Sale\Entities\SalePayment;
 use Modules\SalesReturn\Entities\SaleReturn;
 use Modules\SalesReturn\Entities\SaleReturnPayment;
+use Modules\Purchase\Entities\PurchasePayment;
+use Modules\PurchasesReturn\Entities\PurchaseReturnPayment;
 
 class ProfitLossService
 {
@@ -18,107 +18,155 @@ class ProfitLossService
     {
         // === PENJUALAN ===
         $totalSalesCount = Sale::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->count();
 
         $salesAmount = Sale::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('total_amount') / 100;
 
-        // === RETURN PENJUALAN (untuk hitung revenue profit) ===
+        // === RETURN PENJUALAN ===
+        $totalSaleReturnsCount = SaleReturn::completed()
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->count();
+
         $saleReturnsAmount = SaleReturn::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('total_amount') / 100;
 
         // === PEMBELIAN ===
         $totalPurchasesCount = Purchase::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->count();
 
         $purchasesAmount = Purchase::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->sum('total_amount') / 100;
+
+        // === RETURN PEMBELIAN (biar sama kayak Livewire) ===
+        $totalPurchaseReturnsCount = PurchaseReturn::completed()
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->count();
+
+        $purchaseReturnsAmount = PurchaseReturn::completed()
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('total_amount') / 100;
 
         // === BIAYA OPERASIONAL ===
         $expensesAmount = Expense::query()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('amount') / 100;
 
-        // === KEUNTUNGAN (mengikuti Livewire calculateProfit) ===
+        // === KEUNTUNGAN (SAMAKAN dengan Livewire calculateProfit) ===
         $revenue = $salesAmount - $saleReturnsAmount;
 
         $productCosts = 0;
         $sales = Sale::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
-            ->with('saleDetails.product')
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->with(['saleDetails.product'])
             ->get();
 
         foreach ($sales as $sale) {
             foreach ($sale->saleDetails as $detail) {
-                // product_cost sudah otomatis /100 via accessor Product model
-                $productCosts += (float) $detail->product->product_cost;
+                // Prioritaskan harga histori transaksi (product_cost), jika null jatuh ke harga master product terbaru
+                $cost = $detail->product_cost ?? ($detail->product ? $detail->product->product_cost : 0);
+                $productCosts += (float) $cost * (float) $detail->quantity;
+            }
+        }
+
+        // --- KURANGI HPP DARI BARANG YANG DIRETUR ---
+        $saleReturns = SaleReturn::completed()
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->with(['saleReturnDetails.product'])
+            ->get();
+
+        foreach ($saleReturns as $return) {
+            foreach ($return->saleReturnDetails as $detail) {
+                $cost = $detail->product_cost ?? ($detail->product ? $detail->product->product_cost : 0);
+                $productCosts -= (float) $cost * (float) $detail->quantity;
             }
         }
 
         $profitAmount = $revenue - $productCosts;
 
-        // === UANG MASUK (mengikuti Livewire calculatePaymentsReceived) ===
+        // --- DUAL LABA: Kotor & Bersih ---
+        $labaKotor  = $profitAmount; // Omset - HPP
+        $labaBersih = $labaKotor - $expensesAmount;
+
+        // === UANG MASUK (Berbasis Pembayaran Tunai Nyata) ===
         $salePayments = SalePayment::query()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('amount') / 100;
 
         $purchaseReturnPayments = PurchaseReturnPayment::query()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('amount') / 100;
 
         $uangMasuk = $salePayments + $purchaseReturnPayments;
 
-        // === UANG KELUAR (mengikuti Livewire calculatePaymentsSent + change) ===
+        // === UANG KELUAR (Berbasis Pembayaran Tunai Nyata) ===
         $purchasePayments = PurchasePayment::query()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('amount') / 100;
 
         $saleReturnPayments = SaleReturnPayment::query()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
             ->sum('amount') / 100;
-
-        // Kembalian = paid_amount - total_amount (kalau paid > total)
-        $changeAmount = Sale::completed()
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
-            ->whereColumn('paid_amount', '>', 'total_amount')
-            ->selectRaw('COALESCE(SUM(paid_amount - total_amount),0) as total_change')
-            ->value('total_change') / 100;
 
         $uangKeluar = $purchasePayments + $saleReturnPayments + $expensesAmount;
 
-        // ✅ SESUAI PERMINTAAN KAMU:
+        // SELISIH KAS
         $selisihKas = $uangMasuk - $uangKeluar;
 
-        // Return: tetap sediakan key lama (biar PDF lama nggak pecah), + versi grouping
+        // === PIUTANG & HUTANG (UNTUK PDF) ===
+        $piutang = Sale::completed()
+            ->whereIn('payment_status', ['Partial', 'Unpaid'])
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->sum('due_amount') / 100;
+
+        $hutang = Purchase::completed()
+            ->whereIn('payment_status', ['Partial', 'Unpaid'])
+            ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
+            ->sum('due_amount') / 100;
+
         return [
-            // grouping biar gampang dipisah-pisah di PDF
             'penjualan' => [
                 'trx_count'   => $totalSalesCount,
                 'total_sales' => $salesAmount,
             ],
             'keuntungan' => [
-                'profit' => $profitAmount,
+                'profit'       => $profitAmount,
+                'laba_kotor'   => $labaKotor,
+                'laba_bersih'  => $labaBersih,
             ],
             'pembelian' => [
                 'trx_count' => $totalPurchasesCount,
                 'total'     => $purchasesAmount,
+            ],
+            'retur_penjualan' => [
+                'trx_count' => $totalSaleReturnsCount,
+                'total'     => $saleReturnsAmount,
+            ],
+            'retur_pembelian' => [
+                'trx_count' => $totalPurchaseReturnsCount,
+                'total'     => $purchaseReturnsAmount,
             ],
             'biaya' => [
                 'total' => $expensesAmount,
@@ -129,7 +177,7 @@ class ProfitLossService
                 'selisih_kas' => $selisihKas,
             ],
 
-            // key lama (optional compatibility)
+            // key lama
             'total_sales' => $salesAmount,
             'total_paid'  => $uangMasuk,
             'expenses'    => $expensesAmount,
@@ -139,9 +187,13 @@ class ProfitLossService
 
             // tambahan eksplisit
             'profit_amount'            => $profitAmount,
+            'laba_kotor'               => $labaKotor,
+            'laba_bersih'              => $labaBersih,
             'payments_received_amount' => $uangMasuk,
             'payments_sent_amount'     => $uangKeluar,
             'payments_net_amount'      => $selisihKas,
+            'piutang'                  => $piutang,
+            'hutang'                   => $hutang,
         ];
     }
 }
